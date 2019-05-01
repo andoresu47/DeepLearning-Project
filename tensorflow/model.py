@@ -3,19 +3,32 @@ import os
 
 
 class BigModel:
-    def __init__(self, args, model_type):
-        self.learning_rate = 0.001
-        self.num_steps = args.num_steps
-        self.batch_size = args.batch_size
-        self.display_step = args.display_step
-        self.num_input = 784  # MNIST data input (img shape: 28*28)
-        self.num_classes = 10
-        self.dropoutprob = args.dropoutprob
-        self.checkpoint_dir = args.checkpoint_dir
-        self.checkpoint_file = "bigmodel"
-        self.temperature = args.temperature
+    def __init__(self, 
+                 model_type,
+                 num_steps=500, 
+                 batch_size=128, 
+                 display_step=100, 
+                 num_input=784, 
+                 num_classes=10,
+                 dropoutprob=0.75,
+                 checkpoint_dir="checkpoint",
+                 checkpoint_file="bigmodel",
+                 temperature=1.0,
+                 log_dir="logs", 
+                 learning_rate=0.001):
+        
+        self.learning_rate = learning_rate
+        self.num_steps = num_steps
+        self.batch_size = batch_size
+        self.display_step = display_step
+        self.num_input = num_input  # MNIST data input (img shape: 28*28)
+        self.num_classes = num_classes
+        self.dropoutprob = dropoutprob
+        self.checkpoint_dir = checkpoint_dir
+        self.checkpoint_file = checkpoint_file
+        self.temperature = temperature
         self.checkpoint_path = os.path.join(self.checkpoint_dir, self.checkpoint_file + ".ckpt")
-        self.log_dir = os.path.join(args.log_dir, self.checkpoint_file)
+        self.log_dir = os.path.join(log_dir, self.checkpoint_file)
         self.model_type = model_type
 
         # Store layers weight & bias
@@ -223,21 +236,36 @@ class BigModel:
 
 
 class SmallModel:
-    def __init__(self, args, model_type):
-        self.learning_rate = 0.001
-        self.num_steps = args.num_steps
-        self.batch_size = args.batch_size
-        self.display_step = args.display_step
-        self.n_hidden_1 = 256  # 1st layer number of neurons
-        self.n_hidden_2 = 256  # 2nd layer number of neurons
-        self.num_input = 784  # MNIST data input (img shape: 28*28)
-        self.num_classes = 10
-        self.temperature = args.temperature
-        self.checkpoint_dir = args.checkpoint_dir
-        self.checkpoint_file = "smallmodel"
+    def __init__(self, 
+                 model_type,
+                 num_steps=500, 
+                 batch_size=128, 
+                 display_step=100, 
+                 n_hidden_1=256,
+                 n_hidden_2=256,
+                 num_input=784, 
+                 num_classes=10,
+                 dropoutprob=0.75,
+                 checkpoint_dir="checkpoint",
+                 checkpoint_file="smallmodel",
+                 temperature=1.0,
+                 log_dir="logs", 
+                 learning_rate=0.001):
+        
+        self.learning_rate = learning_rate
+        self.num_steps = num_steps
+        self.batch_size = batch_size
+        self.display_step = display_step
+        self.n_hidden_1 = n_hidden_1  # 1st layer number of neurons
+        self.n_hidden_2 = n_hidden_2  # 2nd layer number of neurons
+        self.num_input = num_input  # MNIST data input (img shape: 28*28)
+        self.num_classes = num_classes
+        self.temperature = temperature
+        self.checkpoint_dir = checkpoint_dir
+        self.checkpoint_file = checkpoint_file
         self.checkpoint_path = os.path.join(self.checkpoint_dir, self.checkpoint_file)
         self.max_checkpoint_path = os.path.join(self.checkpoint_dir, self.checkpoint_file + "max")
-        self.log_dir = os.path.join(args.log_dir, self.checkpoint_file)
+        self.log_dir = os.path.join(log_dir, self.checkpoint_file)
         self.model_type = model_type
 
         self.weights = {
