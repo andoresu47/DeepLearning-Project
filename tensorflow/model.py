@@ -427,7 +427,7 @@ class SmallModel:
         return self.sess.run(self.prediction,
                              feed_dict={self.X: data_X, self.flag: False, self.softmax_temperature: temperature})
 
-    def run_inference(self, dataset):																		   
+    def run_inference(self, dataset):   
         batch_size = dataset.batch_size
         batch_num = dataset.num_batches
         test_accuracy = 0
