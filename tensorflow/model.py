@@ -431,15 +431,15 @@ class SmallModel:
         batch_size = dataset.batch_size
         batch_num = dataset.num_batches
         test_accuracy = 0
-		
+
         for i in range(batch_num):
             batch = dataset.get_test_data_batch()
             test_accuracy += self.sess.run(self.accuracy, feed_dict={self.X: batch[0],
-																	 self.Y: batch[1],
-																	 self.flag: False,
-																	 self.softmax_temperature: 1.0
-																	 })
-		# test_images, test_labels = dataset.get_test_data()
+                                                                     self.Y: batch[1],
+                                                                     self.flag: False,
+                                                                     self.softmax_temperature: 1.0
+                                                                    })
+        # test_images, test_labels = dataset.get_test_data()
         # print("Testing Accuracy:", self.sess.run(self.accuracy, feed_dict={self.X: test_images,
                                                                            # self.Y: test_labels,
                                                                            # # self.soft_Y: test_labels,
@@ -448,6 +448,15 @@ class SmallModel:
                                                                            # }))
         test_accuracy /= batch_num
         print("Testing Accuracy: %g"%test_accuracy)
+        
+    def run_inference_ex(self, dataset_ex):
+        test_images, test_labels = dataset_ex.get_test_data_ex()
+        print("Testing Accuracy:", self.sess.run(self.accuracy, feed_dict={self.X: test_images,
+                                                                           self.Y: test_labels,
+                                                                           # self.soft_Y: test_labels,
+                                                                           self.flag: False,
+                                                                           self.softmax_temperature: 1.0
+                                                                           }))
 
     def load_model_from_file(self, load_path):
         ckpt = tf.train.get_checkpoint_state(load_path)

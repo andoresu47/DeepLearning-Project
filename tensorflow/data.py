@@ -29,13 +29,33 @@ class DatasetExclude:
         self.batch_size = batch_size
         self.num_batches = int(self.num_samples / self.batch_size)
         self.exclude_class=exclude_class
+        self.test_data_ex = self.get_test_data_ex()
         print(self.num_samples)
 
     def get_test_data(self):
         return (self.mnist.test.images, self.mnist.test.labels)
+    
+    def get_test_data_ex(self):
+        ex_class = self.exclude_class
+        test_data = self.mnist.test
+        Xdata_ex = np.array([x for (x,y) in zip(test_data.images, test_data.labels) if y[ex_class]==1])
+        ydata_ex = np.array([y for y in test_data.labels if y[ex_class]==1])
+        return (Xdata_ex, ydata_ex)
 
     def get_test_data_batch(self):
         return self.mnist.test.next_batch(self.batch_size)
+    
+    def get_test_data_batch_ex(self, batch_size=None):
+        num = self.batch_size if batch_size is None else batch_size
+        data = self.test_data_ex[0]
+        labels = self.test_data_ex[1]
+        idx = np.arange(0 , len(data))
+        np.random.shuffle(idx)
+        idx = idx[:num]
+        data_shuffle = data[idx]
+        labels_shuffle = labels[idx]
+
+        return data_shuffle, labels_shuffle
 
     def get_train_data(self):
         return TrainData(self.mnist, self.num_samples, self.batch_size, self.exclude_class)
