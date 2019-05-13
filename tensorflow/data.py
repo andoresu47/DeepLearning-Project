@@ -80,9 +80,9 @@ class TrainData:
         train_data = self.mnist.train
         arrX = train_data.images
         arrY = train_data.labels
-        for ex_class in self.exclude_class:
-            arrX = np.array([x for (x,y) in zip(arrX, arrY) if y[ex_class]==0])
-            arrY = np.array([y for y in arrY if y[ex_class]==0])
+        for e in self.ex_class:
+            arrX = np.array([x for (x,y) in zip(arrX, arrY) if y[e]==0])
+            arrY = np.array([y for y in arrY if y[e]==0])
         return (arrX, arrY)
         
     def next_batch(self, batch_size=None):
@@ -96,6 +96,3 @@ class TrainData:
         labels_shuffle = labels[idx]
 
         return data_shuffle, labels_shuffle
-
-class DataSetTinyImageNet():
-    

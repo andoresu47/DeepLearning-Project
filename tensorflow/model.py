@@ -322,12 +322,13 @@ class SmallModel:
 
             # optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
             # optimizer = tf.train.GradientDescentOptimizer(0.05)
-            self.global_step = tf.Variable(0, trainable=False)
-            self.increment_global_step_op = tf.assign(self.global_step, self.global_step+1)
-            self.ad_learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step,
-                                           1000, 0.96, staircase=True)
-            optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.ad_learning_rate)
-            self.train_op = optimizer.minimize(self.total_loss, global_step=self.global_step)
+            # self.global_step = tf.Variable(0, trainable=False)
+            # self.increment_global_step_op = tf.assign(self.global_step, self.global_step+1)
+            # self.ad_learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step,
+            #                                1000, 0.96, staircase=True)
+            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+            # self.train_op = optimizer.minimize(self.total_loss, global_step=self.global_step)
+            self.train_op = optimizer.minimize(self.total_loss)
 
         with tf.name_scope("%ssummarization" % (self.model_type)), tf.variable_scope(
                         "%ssummarization" % (self.model_type)):
@@ -387,7 +388,7 @@ class SmallModel:
                 soft_targets = teacher_model.predict(batch_x, self.temperature)
                 
             # self.sess.run(self.train_op,
-            _, _, summary = self.sess.run([self.train_op, self.increment_global_step_op, self.merged_summary_op],
+            _, summary = self.sess.run([self.train_op, self.merged_summary_op],
                                        feed_dict={self.X: batch_x,
                                                   self.Y: batch_y,
                                                   self.soft_Y: soft_targets,
