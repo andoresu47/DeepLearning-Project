@@ -2,7 +2,7 @@ import numpy as np
 import pickle as pickle
 
 
-class Model(object):
+class myModel(object):
     
     def __init__(self, model, data, **kwargs):
         

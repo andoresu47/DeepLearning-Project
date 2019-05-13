@@ -25,7 +25,7 @@ class ThreeLayerConvNet(object):
         - filter_size: Width/height of filters to use in the convolutional layer
         - hidden_dim: Number of units to use in the fully-connected hidden layer
         - num_classes: Number of scores to produce from the final affine layer.
-        - weight_scale: Scalar giving standard deviation for random initialization
+        - weight_scale: Scalar to scale the standard deviation for random initialization
           of weights.
         - reg: Scalar giving L2 regularization strength
         - dtype: numpy datatype to use for computation.
