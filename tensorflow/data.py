@@ -90,3 +90,6 @@ class TrainData:
         labels_shuffle = labels[idx]
 
         return data_shuffle, labels_shuffle
+
+# class DataSetTinyImageNet():
+    

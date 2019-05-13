@@ -105,6 +105,7 @@ class BigModel:
 
         with tf.name_scope("%sprediction" % (self.model_type)), tf.variable_scope("%sprediction" % (self.model_type)):
             self.prediction = tf.nn.softmax(logits)
+            self.pred_logits = logits
             # Evaluate model
             correct_pred = tf.equal(tf.argmax(self.prediction, 1), tf.argmax(self.Y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
@@ -130,22 +131,7 @@ class BigModel:
 
             # If using TF 1.6 or above, simply use the following merge_all function
             # which supports scoping
-            # self.merged_summary_op = tf.summary.merge_all(scope=self.model_type)
-
-            # Explicitly using scoping for TF versions below 1.6
-
-            def mymergingfunction(scope_str):
-                with tf.name_scope("%s_%s" % (self.model_type, "summarymerger")), tf.variable_scope(
-                                "%s_%s" % (self.model_type, "summarymerger")):
-                    from tensorflow.python.framework import ops as _ops
-                    key = _ops.GraphKeys.SUMMARIES
-                    summary_ops = _ops.get_collection(key, scope=scope_str)
-                    if not summary_ops:
-                        return None
-                    else:
-                        return tf.summary.merge(summary_ops)
-
-            self.merged_summary_op = mymergingfunction(self.model_type)
+            self.merged_summary_op = tf.summary.merge_all(scope=self.model_type)
 
     def start_session(self):
         self.sess = tf.Session()
@@ -169,6 +155,8 @@ class BigModel:
             _, summary = self.sess.run([self.train_op, self.merged_summary_op],
                                        feed_dict={self.X: batch_x, self.Y: batch_y, self.keep_prob: self.dropoutprob,
                                                   self.softmax_temperature: self.temperature})
+            train_summary_writer.add_summary(summary, step)
+            
             if (step % self.display_step) == 0 or step == 1:
                 # Calculate Validation loss and accuracy
                 validation_x, validation_y = dataset.get_validation_data()
@@ -202,7 +190,11 @@ class BigModel:
     def predict(self, data_X, temperature=1.0):
         return self.sess.run(self.prediction,
                              feed_dict={self.X: data_X, self.keep_prob: 1.0, self.softmax_temperature: temperature})
-
+    
+    def predict_logits(self, data_X, temperature=1.0):
+        return self.sess.run(self.pred_logits,
+                             feed_dict={self.X: data_X, self.keep_prob: 1.0, self.softmax_temperature: temperature})
+    
     def run_inference(self, dataset):									   
         batch_size = dataset.batch_size
         batch_num = dataset.num_batches
@@ -300,12 +292,12 @@ class SmallModel:
 
         with tf.name_scope("%sfclayer" % (self.model_type)), tf.variable_scope("%sfclayer" % (self.model_type)):
             # Hidden fully connected layer with 256 neurons
-            # layer_1 = tf.add(tf.matmul(self.X, self.weights['h1']), self.biases['b1'])
+            layer_1 = tf.add(tf.matmul(self.X, self.weights['h1']), self.biases['b1'])
             # # Hidden fully connected layer with 256 neurons
-            # layer_2 = tf.add(tf.matmul(layer_1, self.weights['h2']), self.biases['b2'])
+            layer_2 = tf.add(tf.matmul(layer_1, self.weights['h2']), self.biases['b2'])
             # # Output fully connected layer with a neuron for each class
-            # logits = (tf.matmul(layer_2, self.weights['out']) + self.biases['out'])
-            logits = tf.add(tf.matmul(self.X, self.weights['linear']), self.biases['linear'])
+            logits = (tf.matmul(layer_2, self.weights['out']) + self.biases['out'])
+            # logits = tf.add(tf.matmul(self.X, self.weights['linear']), self.biases['linear'])
 
         with tf.name_scope("%sprediction" % (self.model_type)), tf.variable_scope("%sprediction" % (self.model_type)):
             self.prediction = tf.nn.softmax(logits)
@@ -330,8 +322,12 @@ class SmallModel:
 
             # optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
             # optimizer = tf.train.GradientDescentOptimizer(0.05)
-            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
-            self.train_op = optimizer.minimize(self.total_loss)
+            self.global_step = tf.Variable(0, trainable=False)
+            self.increment_global_step_op = tf.assign(self.global_step, self.global_step+1)
+            self.ad_learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step,
+                                           1000, 0.96, staircase=True)
+            optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.ad_learning_rate)
+            self.train_op = optimizer.minimize(self.total_loss, global_step=self.global_step)
 
         with tf.name_scope("%ssummarization" % (self.model_type)), tf.variable_scope(
                         "%ssummarization" % (self.model_type)):
@@ -347,22 +343,7 @@ class SmallModel:
 
             # If using TF 1.6 or above, simply use the following merge_all function
             # which supports scoping
-            # self.merged_summary_op = tf.summary.merge_all(scope=self.model_type)
-
-            # Explicitly using scoping for TF versions below 1.6
-
-            def mymergingfunction(scope_str):
-                with tf.name_scope("%s_%s" % (self.model_type, "summarymerger")), tf.variable_scope(
-                                "%s_%s" % (self.model_type, "summarymerger")):
-                    from tensorflow.python.framework import ops as _ops
-                    key = _ops.GraphKeys.SUMMARIES
-                    summary_ops = _ops.get_collection(key, scope=scope_str)
-                    if not summary_ops:
-                        return None
-                    else:
-                        return tf.summary.merge(summary_ops)
-
-            self.merged_summary_op = mymergingfunction(self.model_type)
+            self.merged_summary_op = tf.summary.merge_all(scope=self.model_type)
 
     def start_session(self):
         self.sess = tf.Session()
@@ -374,7 +355,7 @@ class SmallModel:
         teacher_flag = False
         if teacher_model is not None:
             teacher_flag = True
-
+        
         # Initialize the variables (i.e. assign their default value)
         self.sess.run(tf.global_variables_initializer())
         train_data = dataset.get_train_data()
@@ -404,15 +385,17 @@ class SmallModel:
             soft_targets = batch_y
             if teacher_flag:
                 soft_targets = teacher_model.predict(batch_x, self.temperature)
-
+                
             # self.sess.run(self.train_op,
-            _, summary = self.sess.run([self.train_op, self.merged_summary_op],
+            _, _, summary = self.sess.run([self.train_op, self.increment_global_step_op, self.merged_summary_op],
                                        feed_dict={self.X: batch_x,
                                                   self.Y: batch_y,
                                                   self.soft_Y: soft_targets,
                                                   self.flag: teacher_flag,
                                                   self.softmax_temperature: self.temperature}
                                        )
+            train_summary_writer.add_summary(summary, step)
+            
             if (step % self.display_step) == 0 or step == 1:
                 dev_step()
         else:
@@ -466,3 +449,4 @@ class SmallModel:
         else:
             print("Created model with fresh parameters.")
             self.sess.run(tf.global_variables_initializer())
+            
