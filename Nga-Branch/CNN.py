@@ -96,11 +96,11 @@ class ThreeLayerConvNet(object):
             self.params[k] = v.astype(self.dtype)
             
 
-    def loss(self, X, y=None, logit_distill=None, temperature=1.0, alpha=0.5):
+    def loss(self, X, y=None, soft_target=None, temperature=1.0, alpha=0.5, distill_mode='logit'):
         """
         Evaluate loss and gradient for the three-layer convolutional network.
         - y=None: for testing
-        - logit_distill: distill knowledge from big model, default is not doing distillation
+        - soft_target: distill knowledge from big model, default is not doing distillation
         - temperature: using fot distilling
         - alpha: control parameter for distilling, alpha = 1 corresponds to unlabel training
         """
@@ -151,9 +151,9 @@ class ThreeLayerConvNet(object):
         
         # Computing of the loss
         loss, dscores = softmax_loss(scores, y)
-        if logit_distill is not None:
+        if soft_target is not None:
             # Compute loss with introducing soft target from big model
-            loss_soft, dscores_soft = softmax_distill(scores, logit_distill, temperature)
+            loss_soft, dscores_soft = softmax_distill(scores, soft_target, temperature, distill_mode=distill_mode)
             loss = (1-alpha)*loss + alpha*temperature**2*loss_soft
             dscores = (1-alpha)*dscores + alpha*temperature**2*dscores_soft
             
@@ -864,19 +864,44 @@ def softmax_loss(x, y):
     return loss, dx
 
     
-def softmax_distill(x, logit, temperature=1.0):
+# def softmax_distill(x, logit, temperature=1.0):
+#     x /= temperature
+#     logit /= temperature
+#     shifted_logits = x - np.max(x, axis=1, keepdims=True)  # use shift to avoid x is too large to do exponential
+#     Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
+#     log_probs = shifted_logits - np.log(Z)
+#     probs = np.exp(log_probs)
+    
+#     shifted_logits_soft = logit - np.max(logit, axis=1, keepdims=True)
+#     Z_soft = np.sum(np.exp(shifted_logits_soft), axis=1, keepdims=True)
+#     log_probs_soft = shifted_logits_soft - np.log(Z_soft)
+#     probs_soft = np.exp(log_probs_soft)
+    
+#     N = x.shape[0]
+#     loss = -np.sum(probs_soft*log_probs) / N
+    
+#     dx = (probs - probs_soft)/temperature/N
+#     return loss, dx
+
+
+def softmax_distill(x, soft_target, temperature=1.0, distill_mode='logit'):
     x /= temperature
-    logit /= temperature
     shifted_logits = x - np.max(x, axis=1, keepdims=True)  # use shift to avoid x is too large to do exponential
     Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
     log_probs = shifted_logits - np.log(Z)
     probs = np.exp(log_probs)
     
-    shifted_logits_soft = logit - np.max(logit, axis=1, keepdims=True)
-    Z_soft = np.sum(np.exp(shifted_logits_soft), axis=1, keepdims=True)
-    log_probs_soft = shifted_logits_soft - np.log(Z_soft)
-    probs_soft = np.exp(log_probs_soft)
-    
+    if distill_mode=='logit':
+        logit = soft_target/temperature
+        shifted_logits_soft = logit - np.max(logit, axis=1, keepdims=True)
+        Z_soft = np.sum(np.exp(shifted_logits_soft), axis=1, keepdims=True)
+        log_probs_soft = shifted_logits_soft - np.log(Z_soft)
+        probs_soft = np.exp(log_probs_soft)        
+    elif distill_mode=='proba':
+        probs_soft = soft_target
+    else:
+        raise ValueError('Invalid distillation mode "%s"' % distill_mode)
+        
     N = x.shape[0]
     loss = -np.sum(probs_soft*log_probs) / N
     

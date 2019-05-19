@@ -19,11 +19,13 @@ class myModel(object):
         self.batch_size = kwargs.pop('batch_size', 100)
         self.num_epochs = kwargs.pop('num_epochs', 10)
         
-        self.logit_distill = kwargs.pop('logit_distill', None)
+        self.soft_target = kwargs.pop('soft_target', None)
         self.temperature = kwargs.pop('temperature', 1.0)
         self.alpha = kwargs.pop('alpha', 0.5)
+        self.distill_mode = kwargs.pop('distill_mode', 'logit')
 
         self.checkpoint_name = kwargs.pop('checkpoint_name', None)
+        self.checkpoint_dir = kwargs.pop('checkpoint_dir', None)
         self.print_every = kwargs.pop('print_every', 10)
         self.verbose = kwargs.pop('verbose', True)
 
@@ -31,8 +33,11 @@ class myModel(object):
         if len(kwargs) > 0:
             extra = ', '.join('"%s"' % k for k in list(kwargs.keys()))
             raise ValueError('Unrecognized arguments %s' % extra)
-
+        
         self._reset()
+        
+        if self.checkpoint_dir is not None:
+            self._load_checkpoint()
     
     
     def _reset(self):
@@ -54,6 +59,20 @@ class myModel(object):
             d = {k: v for k, v in self.optim_config.items()}
             self.optim_configs[p] = d
             
+            
+    def _load_checkpoint(self):
+        with open(self.checkpoint_dir, 'rb') as fo:
+            checkpoint = pickle.load(fo)
+        self.model = checkpoint['model']
+        self.optimizer = checkpoint['optimizer']
+        self.optim_config = checkpoint['optim_config']
+        self.lr_decay = checkpoint['lr_decay']
+        self.batch_size = checkpoint['batch_size']
+        self.epoch = checkpoint['epoch']
+        self.loss_history = checkpoint['loss_history']
+        self.train_acc_history = checkpoint['train_acc_history']
+        self.val_acc_history = checkpoint['val_acc_history']
+            
     
     def _step(self):
         """
@@ -65,13 +84,13 @@ class myModel(object):
         batch_mask = np.random.choice(num_train, self.batch_size)
         X_batch = self.X_train[batch_mask]
         y_batch = self.y_train[batch_mask]
-        if self.logit_distill is not None:
-            logit_batch = self.logit_distill[batch_mask]
+        if self.soft_target is not None:
+            soft_target_batch = self.soft_target[batch_mask]
         else:
-            logit_batch = None
+            soft_target_batch = None
 
         # Compute loss and gradient
-        loss, grads = self.model.loss(X_batch, y_batch, logit_batch, self.temperature, self.alpha)
+        loss, grads = self.model.loss(X_batch, y_batch, soft_target_batch, self.temperature, self.alpha, self.distill_mode)
         self.loss_history.append(loss)
 
         # Perform a parameter update
