@@ -1,0 +1,26 @@
+T: 1
+Results: Training Accuracy: 0.8836338141025641, Validation Accuracy: 0.8851161858974359, Execution time: 44.532466411590576
+T: 2
+Results: Training Accuracy: 0.8963741987179488, Validation Accuracy: 0.8924278846153846, Execution time: 50.99216890335083
+T: 3
+Results: Training Accuracy: 0.8506610576923077, Validation Accuracy: 0.8465544871794872, Execution time: 56.46808743476868
+T: 4
+Results: Training Accuracy: 0.7571113782051282, Validation Accuracy: 0.7735376602564102, Execution time: 57.9720823764801
+T: 5
+Results: Training Accuracy: 0.7020032051282051, Validation Accuracy: 0.7071314102564102, Execution time: 49.01522517204285
+T: 6
+Results: Training Accuracy: 0.5970552884615384, Validation Accuracy: 0.5961538461538461, Execution time: 49.59856033325195
+T: 7
+Results: Training Accuracy: 0.5896233974358974, Validation Accuracy: 0.5936498397435898, Execution time: 49.80259156227112
+T: 8
+Results: Training Accuracy: 0.4741185897435897, Validation Accuracy: 0.4762620192307692, Execution time: 49.29963135719299
+T: 9
+Results: Training Accuracy: 0.45631009615384616, Validation Accuracy: 0.4606370192307692, Execution time: 48.89782214164734
+T: 10
+Results: Training Accuracy: 0.3691706730769231, Validation Accuracy: 0.3685897435897436, Execution time: 49.12878489494324
+T: 15
+Results: Training Accuracy: 0.28978365384615384, Validation Accuracy: 0.2800480769230769, Execution time: 49.569628953933716
+T: 20
+Results: Training Accuracy: 0.24763621794871796, Validation Accuracy: 0.25731169871794873, Execution time: 51.393988847732544
+T: 50
+Results: Training Accuracy: 0.14208733974358975, Validation Accuracy: 0.14152644230769232, Execution time: 51.6891975402832
