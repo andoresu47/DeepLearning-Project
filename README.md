@@ -8,7 +8,7 @@ This project consists of various experiments exploring the concept of **Knowledg
 
 # Experimental Results 
 
-Every folder in the repository leads to a set of experiments on specific teacher-student architectures and datasets. These are mainly condensed in jupyter notebooks, which make use of the scripts under the same directory. The table below shows sample accuracy results of using a small CNN as student model, both as a standalone and after distilling knowledge from VGG16 and ResNet164 pre-trained nets. 
+Every folder in the repository leads to a set of experiments on specific teacher-student architectures and datasets. These are mainly condensed in jupyter notebooks, which make use of the scripts under the same directory. The table below shows sample accuracy results of using a small CNN as student model, both as standalone and after distilling knowledge from VGG16 and ResNet164 pre-trained nets, on the MNIST dataset. 
 
 |     Model     | Test Accuracy |
 | ------------- | ------------- |
