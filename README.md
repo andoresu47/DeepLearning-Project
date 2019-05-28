@@ -6,6 +6,8 @@ In multiple-class classification models, usually the objective function is the a
 
 This project consists of various experiments exploring the concept of **Knowledge Distillation**, introduced in [this paper](https://arxiv.org/abs/1503.02531) by Hinton et al., by using the teacher's class probabilities as "soft" inputs for training the student model. For this, we use a modified version of the regular *softmax* function by introducing a temperature factor which softens the teacher's probabilities. This approach was tested on a series of smaller models: a simple two-layered feed-forward network, a three-layered ConvNet and a ConvNet ensemble, for a variety of teachers: a self-trained 3 layer CNN, pre-trained networks based on the ResNet, VGG and ShuffleNet architectures. The experiments were performed on the the MNIST, Cifar100 and Tiny-ImageNet data sets. 
 
+For the ShuffleNet experiments, the teacher model was taken from [this paper](https://github.com/TropComplique/ShuffleNet-tensorflow).
+
 # Experimental Results 
 
 Every folder in the repository leads to a set of experiments on specific teacher-student architectures and datasets. These are mainly condensed in jupyter notebooks, which make use of the scripts under the same directory. The table below shows sample accuracy results of using a small CNN as student model, both as standalone and after distilling knowledge from VGG16 and ResNet164 pre-trained nets, on the MNIST dataset. 
